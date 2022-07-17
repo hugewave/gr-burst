@@ -82,7 +82,7 @@ set(GRC_BLOCKS_DIR      ${GR_PKG_DATA_DIR}/grc/blocks)
 ########################################################################
 # Find gnuradio build dependencies
 ########################################################################
-set(GR_REQUIRED_COMPONENTS FILTER RUNTIME VOLK)
+set(GR_REQUIRED_COMPONENTS FILTER RUNTIME VOLK PMT FFT)
 find_package(Gnuradio "3.7" REQUIRED)
 find_package(GnuradioEventstream)
 find_package(CppUnit)
@@ -116,6 +116,7 @@ include_directories(
     ${GNURADIO_RUNTIME_INCLUDE_DIRS}
     ${MAPPER_INCLUDE_DIRS}
     ${VOLK_INCLUDE_DIRS}
+    ${GSL_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -123,6 +124,7 @@ link_directories(
     ${CPPUNIT_LIBRARY_DIRS}
     ${VOLK_LIBRARY_DIRS}
     ${GNURADIO_RUNTIME_LIBRARY_DIRS}
+    ${GSL_INCLUDE_DIRS}
 )
 
 # Set component parameters
@@ -140,6 +142,32 @@ configure_file(
 add_custom_target(uninstall
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 )
+
+if(MSVC)
+    include_directories(${CMAKE_SOURCE_DIR}/cmake/msvc) #missing headers
+    add_definitions(-D_USE_MATH_DEFINES) #enables math constants on all supported versions of MSVC
+    add_definitions(-D_WIN32_WINNT=0x0502) #Minimum version: "Windows Server 2003 with SP1, Windows XP with SP2"
+    add_definitions(-DNOMINMAX) #disables stupidity and enables std::min and std::max
+    add_definitions( #stop all kinds of compatibility warnings
+        -D_SCL_SECURE_NO_WARNINGS
+        -D_CRT_SECURE_NO_WARNINGS
+        -D_CRT_SECURE_NO_DEPRECATE
+        -D_CRT_NONSTDC_NO_DEPRECATE
+    )
+    #add_definitions(-DHAVE_CONFIG_H)
+    add_definitions(/MP) #build with multiple processors
+    add_definitions(/bigobj) #allow for larger object files
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi /Od")
+#    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG:FULL")
+    add_link_options(/DEBUG)
+endif(MSVC)
+
+if(WIN32)
+	add_definitions(-D_USE_MATH_DEFINES)
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		add_definitions(-DMS_WIN64)
+	endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+endif(WIN32)
 
 ########################################################################
 # Add subdirectories

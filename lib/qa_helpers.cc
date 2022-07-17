@@ -1,12 +1,10 @@
 #include "qa_helpers.h"
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
-
-#include <glob.h>
 #include <string>
-
 #include <iostream>
 #include <stdio.h>
+#include <boost/filesystem.hpp>
 
 std::vector<gr_complex> qa_helpers::readComplexFile(std::string filename) {
 	std::vector<gr_complex> complexData;
@@ -170,14 +168,20 @@ void qa_helpers::areUCharVectorsEqual(std::vector<unsigned char> expectedVec, st
 }
 
 std::vector<std::string> qa_helpers::getFilesInDir(const std::string& pat) {
-    glob_t glob_result;
-    glob(pat.c_str(),GLOB_TILDE,NULL,&glob_result);
     std::vector<std::string> ret;
-    for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-        ret.push_back(std::string(glob_result.gl_pathv[i]));
-    }
-    globfree(&glob_result);
-    return ret;
+	namespace fs = boost::filesystem;
+	fs::path p(pat);
+	if (fs::is_directory(p))
+	{
+		fs::recursive_directory_iterator end;
+		for (fs::recursive_directory_iterator i(p); i != end; ++i)
+		{
+			const fs::path cp = (*i);
+			ret.push_back(cp.string());
+		}
+	}
+	
+	return ret;
 }
 
 bool qa_helpers::fileExists(const char *filename) {

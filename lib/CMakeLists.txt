@@ -32,7 +32,13 @@ list(APPEND burst_sources
     qa_helpers.cc )
 
 add_library(gnuradio-burst SHARED ${burst_sources})
-target_link_libraries(gnuradio-burst ${Boost_LIBRARIES} ${GNURADIO_ALL_LIBRARIES} ${GNURADIO_EVENTSTREAM_LIBRARIES} ${GSL_LIBRARIES} ${CPPUNIT_LIBRARIES} ${MAPPER_LIBRARIES})
+target_link_libraries(gnuradio-burst 
+    ${Boost_LIBRARIES} 
+    ${GNURADIO_ALL_LIBRARIES}
+    ${GNURADIO_EVENTSTREAM_LIBRARIES} 
+    ${GSL_LIBRARIES}
+    ${CPPUNIT_LIBRARIES}
+    ${MAPPER_LIBRARIES})
 set_target_properties(gnuradio-burst PROPERTIES DEFINE_SYMBOL "gnuradio_burst_EXPORTS")
 
 ########################################################################
